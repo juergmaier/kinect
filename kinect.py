@@ -1,6 +1,7 @@
 
 import os
 import sys
+import rpyc
 from primesense import openni2
 from primesense import _openni2 as c_api
 import numpy as np
@@ -90,7 +91,7 @@ def kinectTerminate():
     '''
     stop kinect Process
     '''
-    os._exit(3001)
+    os._exit(2001)
 
 
 def removeUpperRange(depth):
@@ -176,6 +177,10 @@ def obstacleMap(orientation):
     return for each column (640) the closest distance
     '''
 
+    if depth_stream is None:
+        config.log("depth_stream is None, can not get obstacleMap")
+        return None
+
     frame = depth_stream.read_frame()
     frame_data = frame.get_buffer_as_uint16()
     arr1d = np.frombuffer(frame_data, dtype=np.int16)
@@ -199,8 +204,6 @@ def obstacleMap(orientation):
     return obstacles   # for each screen column the closest obstacle between floor and ceiling
 
 
-
-
 if __name__ == '__main__':
 
     # in standalone try to grab an image
@@ -208,6 +211,10 @@ if __name__ == '__main__':
         kinectInit(0,0)
         raise SystemExit()
 
-    # start xmlrpcListener
-    print("kinect - wait for xmlrpc messages on port {config.MY_XMLRPC_PORT}")
-    rpcReceive.xmlrpcListener()
+    from rpyc.utils.server import ThreadedServer
+
+    print(f"start listening on port {config.MY_RPC_PORT}")
+    myConfig = {"allow_all_attrs": True, "allow_pickle": True}
+    server = ThreadedServer(rpcReceive.kinectListener, port=config.MY_RPC_PORT, protocol_config=myConfig)
+    server.start()
+

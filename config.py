@@ -9,7 +9,7 @@ import rpcSend
 standAlone = False
 
 MY_IP = "192.168.0.17"
-MY_XMLRPC_PORT = 30003      # defined in taskOrchestrator
+MY_RPC_PORT = 20003      # defined in taskOrchestrator
 
 def log(msg):
     logtime = str(datetime.datetime.now())[11:]
